@@ -15,7 +15,7 @@ import Defog from defog
 
 // set up Defog
 const defog = new Defog(
-  "YOUR_API_KEY",
+  process.env.DEFOG_API_KEY,
   "postgres", 
   {
     user: "YOUR_POSTGRES_USERNAME",
