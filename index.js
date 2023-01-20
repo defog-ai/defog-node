@@ -1,4 +1,4 @@
-var fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 module.exports = class Defog {
   constructor(api_key, db_type = "postgres", db_creds = null) {
@@ -7,26 +7,26 @@ module.exports = class Defog {
   this.db_creds = db_creds;
   }
 
-  generatePostgresSchema(tables) {
+  async generatePostgresSchema(tables) {
   try {
-    var pg = require('pg');
+    const { Client } = require("pg");
   } catch {
     throw "pg not installed.";
   }
 
-  var client = new pg.Client(this.db_creds);
-  client.connect();
-  var schemas = {};
+  const client = new Client(this.db_creds);
+  await client.connect();
+  const schemas = {};
 
   console.log("Getting schema for each tables in your database...");
   tables.forEach(table_name => {
     client.query("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1;", [table_name], (err, res) => {
-    if (err) throw err;
-    var rows = res.rows;
-    rows = rows.map(row => {
-      return { column_name: row.column_name, data_type: row.data_type };
-    });
-    schemas[table_name] = rows;
+      if (err) throw err;
+      let rows = res.rows;
+      rows = rows.map(row => {
+        return { column_name: row.column_name, data_type: row.data_type };
+      });
+      schemas[table_name] = rows;
     });
   });
   client.end();
@@ -88,13 +88,13 @@ module.exports = class Defog {
   
   runQuery(question, hard_filters = null) {
     console.log("generating the query for your question...");
-    return this.getQuery(question, hard_filters).then(query => {
+    return this.getQuery(question, hard_filters).then(async(query) => {
       if (query.ran_successfully) {
         console.log("Query generated, now running it on your database...");
         if (query.query_db === "postgres") {
           var pg = require('pg');
           var client = new pg.Client(this.db_creds);
-          client.connect();
+          await client.connect();
           return client.query(query.query_generated)
             .then(res => {
               var colnames = res.fields.map(f => f.name);
