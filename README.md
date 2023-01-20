@@ -37,3 +37,9 @@ defog.generatePostgresSchema(tables).then(gsheet_url => {
   });
 });
 ```
+
+## Mongo
+TODO
+
+## BigQuery
+TODO
