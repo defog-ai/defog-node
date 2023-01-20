@@ -11,9 +11,7 @@
     "url": "git+https://github.com/defog-ai/defog-node.git"
   },
   "keywords": [
-    "defog",
-    "defog",
-    "node"
+    "defog"
   ],
   "author": "Full Stack Data Pte Ltd",
   "license": "MIT",

@@ -122,7 +122,7 @@ class Defog {
   }
 }
 
-export default Defog;
+module.exports = Defog;
 // const defog = new Defog(
 //   "",
 //   "", 
