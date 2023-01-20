@@ -1,5 +1,5 @@
 {
-  "name": "defog-node",
+  "name": "defog",
   "version": "1.0.0",
   "description": "Node package for accessing Defog.ai",
   "main": "index.js",
