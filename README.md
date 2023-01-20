@@ -13,6 +13,7 @@ You can get your API key by going to [https://defog.ai/account](https://defog.ai
 ```
 import Defog from defog
 
+// set up Defog
 const defog = new Defog(
   "YOUR_API_KEY",
   "postgres", 
@@ -25,17 +26,16 @@ const defog = new Defog(
   }
 );
 
+// generate your initial table schema in a google sheet
 const tables = ["YOUR_TABLE_NAME_1"];
-defog.generatePostgresSchema(tables).then(gsheet_url => {
-  console.log(gsheet_url);
-  defog.updatePostgresSchema(gsheet_url).then(res => {
-    console.log(res);
-    const question = "";
-    defog.runQuery(question).then(res => {
-      console.log(res);
-    });
-  });
-});
+const gsheetUrl = await defog.generatePostgresSchema(tables);
+
+// after editing the google sheet, upload it to your account
+await defog.updatePostgresSchema(gsheetUrl);
+
+const question = "which 10 cities had the highest average pollution today?";
+const answer = await defog.runQuery(question);
+console.log(answer);
 ```
 
 ## Mongo
