@@ -60,4 +60,22 @@ console.log(answer);
 ```
 
 ## MySQL
-TODO
+```
+const defog = new Defog(
+  api_key = process.env.DEFOG_API_KEY,
+  db_type = "mysql",
+  db_creds = {
+    user: USERNAME,
+    host: HOST,
+    database: DBNAME,
+    password: PASSWORD
+  }
+);
+
+const tables = ['YOUR_TABLE_1', 'YOUR_TABLE_2'];
+await defog.updateMySQLSchema(sheetUrl);
+
+const question = "which 10 companies had the most layoffs?";
+const query = await defog.runQuery(question);
+console.log(query);
+```
