@@ -1,6 +1,6 @@
 {
   "name": "defog",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Node package for accessing Defog.ai",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/defog-ai/defog-node#readme",
   "dependencies": {
+    "mongodb": "^4.13.0",
     "node-fetch": "^3.3.0",
     "pg": "^8.8.0"
   }

@@ -57,7 +57,7 @@ class Defog {
         for(const i in rows) {
           rowsData.push({"field_name": i, "data_type": Array.isArray(rows[i]) ? 'array' : typeof rows[i]});
         }
-        schemas[collection_name] = rowsData;
+        schemas[collectionName] = rowsData;
       }
       client.close();
       console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
