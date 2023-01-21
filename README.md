@@ -40,7 +40,24 @@ console.log(answer);
 ```
 
 ## Mongo
-TODO
+```
+const Defog = require("defog");
 
-## BigQuery
+const defog = new Defog(
+  api_key = process.env.DEFOG_API_KEY,
+  db_type = "mongo",
+  db_creds = {"connection_string": MONGOCONNECTIONSTRING}
+);
+
+const collections = ['layoffs'];
+sheetUrl = await defog.generateMongoSchema(collections);
+
+await defog.updateMongoSchema(sheetUrl);
+
+const question = "which 10 companies had the most layoffs?";
+const answer = await defog.runQuery(question);
+console.log(answer);
+```
+
+## MySQL
 TODO
