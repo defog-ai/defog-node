@@ -73,6 +73,8 @@ const defog = new Defog(
 );
 
 const tables = ['YOUR_TABLE_1', 'YOUR_TABLE_2'];
+sheetUrl = await defog.generateMySQLSchema(tables);
+
 await defog.updateMySQLSchema(sheetUrl);
 
 const question = "which 10 companies had the most layoffs?";
