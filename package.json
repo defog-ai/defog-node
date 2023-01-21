@@ -21,6 +21,7 @@
   "homepage": "https://github.com/defog-ai/defog-node#readme",
   "dependencies": {
     "mongodb": "^4.13.0",
+    "mysql": "^2.18.1",
     "node-fetch": "^3.3.0",
     "pg": "^8.8.0"
   }

@@ -41,6 +41,46 @@ class Defog {
     }
   }
 
+  async generateMySQLSchema(tables) {
+    const mysql = require('mysql');
+    const util = require('util');
+    const connection = mysql.createConnection(this.db_creds);
+    connection.connect();
+    const schemas = {};
+
+    console.log("Getting schema for each tables in your database...");
+    for (const table_name of tables) {
+      const generated_query = `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = '${table_name}';`;
+      // const res = await connection.query(generated_query);
+      const query = util.promisify(connection.query).bind(connection);
+      const res = await query(generated_query);
+      let rows = res;
+      rows = rows.map(row => {
+        return { column_name: row.column_name, data_type: row.data_type };
+      })
+      schemas[table_name] = rows;
+    }
+    connection.end();
+
+    console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
+    const res = await fetch("https://api.defog.ai/get_postgres_schema_gsheets", {
+      method: "POST",
+      body: JSON.stringify({
+        api_key: this.api_key,
+        schemas: schemas
+      }),
+      headers: { "Content-Type": "application/json" }
+    })
+    const resp = await res.json();
+    try {
+      const gsheet_url = resp.sheet_url;
+      return gsheet_url;
+    } catch (e) {
+      console.log(resp);
+      throw resp.message;
+    }
+  }
+
   async generateMongoSchema(collections) {
     const MongoClient = require('mongodb').MongoClient;
     const client = new MongoClient(this.db_creds['connection_string'], { useNewUrlParser: true });
@@ -110,6 +150,19 @@ class Defog {
     console.log("MongoDB schema updated!");
   }
 
+  async updateMySQLSchema(gsheet_url) {
+    const res = await fetch("https://api.defog.ai/update_postgres_schema", {
+      method: "POST",
+      body: JSON.stringify({
+        api_key: this.api_key,
+        gsheet_url: gsheet_url
+      }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const resp = await res.json();
+    console.log("Postgres schema updated!");
+  }
+
   async getQuery(question, hard_filters = null) {
     try {
       const res = await fetch("https://api.defog.ai/generate_query", {
@@ -124,7 +177,6 @@ class Defog {
         headers: { "Content-Type": "application/json" }
       });
       const resp = await res.json();
-      console.log(resp);
       return {
           query_generated: resp.query_generated,
           ran_successfully: resp.ran_successfully,
@@ -175,7 +227,27 @@ class Defog {
           query_generated: query["query_generated"],
           ran_successfully: true
         };
-      }
+      } else if (query.query_db === "mysql") {
+        const mysql = require('mysql');
+        const util = require('util');
+  
+        const connection = mysql.createConnection(this.db_creds);
+        connection.connect();
+        const queryAsync = util.promisify(connection.query).bind(connection);
+        const res = await queryAsync(query.query_generated);
+        console.log("Query ran succesfully!")
+        console.log(res);
+        const colnames = Object.keys(res[0]);
+        const rows = res;
+        const data = rows.map(row => Object.values(row));
+        connection.end();
+        return {
+          columns: colnames,
+          data: data,
+          query_generated: query.query_generated,
+          ran_successfully: true
+        };
+      } 
     } else {
       console.log("We could not generate the query...");
       return {
@@ -187,21 +259,3 @@ class Defog {
 }
 
 module.exports = Defog;
-
-// test code
-// const testCode = async () => {
-//   const defog = new Defog(
-//     api_key = process.env.DEFOG_API_KEY,
-//     db_type = "mongo",
-//     db_creds = {"connection_string": "mongodb://localhost/tweets"}
-//   );
-  
-//   const collections = ['layoffs'];
-//   const sheetUrl = await defog.generateMongoSchema(collections);
-//   await defog.updateMongoSchema(sheetUrl);
-  
-//   const query = await defog.runQuery("What 10 companies laid off the most employees?");
-//   console.log(query);
-// }
-
-// testCode();
