@@ -42,6 +42,49 @@ class Defog {
     }
   }
 
+  async generateMongoSchema(collections) {
+    const MongoClient = require('mongodb').MongoClient;
+    const client = new MongoClient(this.db_creds['connection_string'], { useNewUrlParser: true });
+    try {
+      await client.connect();
+      const db = client.db();
+      const schemas = {};
+      console.log("Getting schema for each collections in your database...");
+      for (const collectionName of collections) {
+        const collection = db.collection(collectionName);
+        const rows = await collection.findOne();
+        const rowsData =[];
+        for(const i in rows) {
+          rowsData.push({"field_name": i, "data_type": Array.isArray(rows[i]) ? 'array' : typeof rows[i]});
+        }
+        schemas[collection_name] = rowsData;
+      }
+      client.close();
+      console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
+      request.post("https://api.defog.ai/get_mongo_schema_gsheets", {
+        json: {
+          "api_key": this.api_key,
+          "schemas": schemas
+        }
+      }, (error, response, body) => {
+        if (!error && response.statusCode === 200) {
+          const resp = JSON.parse(body);
+          try {
+            const gsheet_url = resp['sheet_url'];
+            return gsheet_url;
+          } catch (e) {
+            console.log(resp);
+            throw new Error(resp['message']);
+          }
+        } else {
+          console.log(error);
+        }
+      });
+    } catch (err) {
+      console.log(err.stack);
+    }
+}
+
   async updatePostgresSchema(gsheet_url) {
     const res = fetch("https://api.defog.ai/update_postgres_schema", {
       method: "POST",
@@ -55,6 +98,19 @@ class Defog {
     console.log("Postgres schema updated!");
   }
 
+  async updateMongoSchema(gsheet_url) {
+    const res = fetch("https://api.defog.ai/update_mongo_schema", {
+      method: "POST",
+      body: JSON.stringify({
+        api_key: this.api_key,
+        gsheet_url: gsheet_url
+      }),
+      headers: { "Content-Type": "application/json" }
+    });
+    const resp = await res.json();
+    console.log("MongoDB schema updated!");
+  }
+
   async getQuery(question, hard_filters = null) {
     try {
       const res = await fetch("https://api.defog.ai/generate_query", {
@@ -63,7 +119,8 @@ class Defog {
           question: question,
           api_key: this.api_key,
           hard_filters: hard_filters,
-          db_type: this.db_type
+          db_type: this.db_type,
+          client: "node"
         }),
         headers: { "Content-Type": "application/json" }
       });
@@ -101,6 +158,21 @@ class Defog {
           data: data,
           query_generated: query.query_generated,
           ran_successfully: true
+        };
+      } else if (query.query_db === "mongo") {
+        const MongoClient = require('mongodb').MongoClient;
+        const client = new MongoClient(this.db_creds['connection_string'], { useNewUrlParser: true });
+        await client.connect();
+        const db = client.db();
+        const res = await eval(query['query_generated']);
+        const colnames = Object.keys(res[0]);
+        const data = res;
+        client.close();
+        return {
+          columns: colnames,
+          data: data,
+          query_generated: query["query_generated"],
+          ran_successfully: True
         };
       }
     } else {
