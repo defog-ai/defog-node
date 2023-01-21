@@ -61,11 +61,13 @@ class Defog {
       }
       client.close();
       console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
-      request.post("https://api.defog.ai/get_mongo_schema_gsheets", {
-        json: {
+      fetch("https://api.defog.ai/get_mongo_schema_gsheets", {
+        method: "POST",
+        data: JSON.stringify({
           "api_key": this.api_key,
           "schemas": schemas
-        }
+        }),
+        headers: { "Content-Type": "application/json" }
       }, (error, response, body) => {
         if (!error && response.statusCode === 200) {
           const resp = JSON.parse(body);
