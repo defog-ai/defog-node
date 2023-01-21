@@ -60,6 +60,7 @@ class Defog {
         schemas[collectionName] = rowsData;
       }
       client.close();
+      console.log(schema);
       console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
       const res = await fetch("https://api.defog.ai/get_mongo_schema_gsheets", {
         method: "POST",
@@ -71,8 +72,8 @@ class Defog {
       });
       const resp = await res.json();
       try {
-        const gsheet_url = resp['sheet_url'];
-        return gsheet_url;
+        const gsheetUrl = resp['sheet_url'];
+        return gsheetUrl;
       } catch (e) {
         console.log(resp);
         throw new Error(resp['message']);
