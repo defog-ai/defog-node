@@ -22,7 +22,6 @@ class Defog {
       schemas[table_name] = rows;
     }
     client.end();
-
     console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
     const res = fetch("https://api.defog.ai/get_postgres_schema_gsheets", {
       method: "POST",
@@ -60,18 +59,20 @@ class Defog {
         schemas[collectionName] = rowsData;
       }
       client.close();
-      console.log(schema);
       console.log("Sending the schema to the defog servers and generating a Google Sheet. This might take up to 2 minutes...");
       const res = await fetch("https://api.defog.ai/get_mongo_schema_gsheets", {
         method: "POST",
-        data: JSON.stringify({
-          "api_key": this.api_key,
-          "schemas": schemas
+        body: JSON.stringify({
+          api_key: this.api_key,
+          schemas: schemas
         }),
         headers: { "Content-Type": "application/json" }
       });
       const resp = await res.json();
       try {
+        if (resp['status'] === "error") {
+          throw new Error(resp['message']);
+        }
         const gsheetUrl = resp['sheet_url'];
         return gsheetUrl;
       } catch (e) {
@@ -84,7 +85,7 @@ class Defog {
 }
 
   async updatePostgresSchema(gsheet_url) {
-    const res = fetch("https://api.defog.ai/update_postgres_schema", {
+    const res = await fetch("https://api.defog.ai/update_postgres_schema", {
       method: "POST",
       body: JSON.stringify({
         api_key: this.api_key,
@@ -96,12 +97,12 @@ class Defog {
     console.log("Postgres schema updated!");
   }
 
-  async updateMongoSchema(gsheet_url) {
-    const res = fetch("https://api.defog.ai/update_mongo_schema", {
+  async updateMongoSchema(gsheetUrl) {
+    const res = await fetch("https://api.defog.ai/update_mongo_schema", {
       method: "POST",
       body: JSON.stringify({
         api_key: this.api_key,
-        gsheet_url: gsheet_url
+        gsheet_url: gsheetUrl
       }),
       headers: { "Content-Type": "application/json" }
     });
@@ -123,6 +124,7 @@ class Defog {
         headers: { "Content-Type": "application/json" }
       });
       const resp = await res.json();
+      console.log(resp);
       return {
           query_generated: resp.query_generated,
           ran_successfully: resp.ran_successfully,
@@ -163,6 +165,7 @@ class Defog {
         await client.connect();
         const db = client.db();
         const res = await eval(query['query_generated']);
+
         const colnames = Object.keys(res[0]);
         const data = res;
         client.close();
@@ -170,7 +173,7 @@ class Defog {
           columns: colnames,
           data: data,
           query_generated: query["query_generated"],
-          ran_successfully: True
+          ran_successfully: true
         };
       }
     } else {
@@ -184,3 +187,21 @@ class Defog {
 }
 
 module.exports = Defog;
+
+// test code
+// const testCode = async () => {
+//   const defog = new Defog(
+//     api_key = process.env.DEFOG_API_KEY,
+//     db_type = "mongo",
+//     db_creds = {"connection_string": "mongodb://localhost/tweets"}
+//   );
+  
+//   const collections = ['layoffs'];
+//   const sheetUrl = await defog.generateMongoSchema(collections);
+//   await defog.updateMongoSchema(sheetUrl);
+  
+//   const query = await defog.runQuery("What 10 companies laid off the most employees?");
+//   console.log(query);
+// }
+
+// testCode();
