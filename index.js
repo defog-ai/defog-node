@@ -1,3 +1,5 @@
+const fetch = require('node-fetch');
+
 class Defog {
   constructor(api_key, db_type = "postgres", db_creds = null) {
     this.api_key = api_key;
