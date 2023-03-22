@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 class Defog {
   constructor(api_key, db_type = "postgres", db_creds = null) {
     this.api_key = api_key;
@@ -9,6 +7,7 @@ class Defog {
 
   async generatePostgresSchema(tables) {
     const pg = require('pg');
+    const fetch = require('node-fetch');
     const client = new pg.Client(this.db_creds);
     await client.connect();
     const schemas = {};
@@ -46,6 +45,7 @@ class Defog {
   async generateMySQLSchema(tables) {
     const mysql = require('mysql');
     const util = require('util');
+    const fetch = require('node-fetch');
     const connection = mysql.createConnection(this.db_creds);
     connection.connect();
     const schemas = {};
@@ -85,6 +85,7 @@ class Defog {
 
   async generateMongoSchema(collections) {
     const MongoClient = require('mongodb').MongoClient;
+    const fetch = require('node-fetch');
     const client = new MongoClient(this.db_creds['connection_string'], { useNewUrlParser: true });
     try {
       await client.connect();
@@ -127,6 +128,7 @@ class Defog {
 }
 
   async updatePostgresSchema(gsheet_url) {
+    const fetch = require('node-fetch');
     const res = await fetch("https://api.defog.ai/update_postgres_schema", {
       method: "POST",
       body: JSON.stringify({
@@ -140,6 +142,7 @@ class Defog {
   }
 
   async updateMongoSchema(gsheetUrl) {
+    const fetch = require('node-fetch');
     const res = await fetch("https://api.defog.ai/update_mongo_schema", {
       method: "POST",
       body: JSON.stringify({
@@ -153,6 +156,7 @@ class Defog {
   }
 
   async updateMySQLSchema(gsheet_url) {
+    const fetch = require('node-fetch');
     const res = await fetch("https://api.defog.ai/update_postgres_schema", {
       method: "POST",
       body: JSON.stringify({
@@ -166,6 +170,7 @@ class Defog {
   }
 
   async getQuery(question, hard_filters = null) {
+    const fetch = require('node-fetch');
     try {
       const res = await fetch("https://api.defog.ai/generate_query", {
         method: "POST",
@@ -191,6 +196,7 @@ class Defog {
   }
   
   async runQuery(question, hard_filters = null) {
+    const fetch = require('node-fetch');
     console.log("generating the query for your question...");
     const query = await this.getQuery(question, hard_filters);
     
