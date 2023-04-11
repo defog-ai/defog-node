@@ -218,7 +218,25 @@ class Defog {
           query_generated: query.query_generated,
           ran_successfully: true
         };
-      } else if (query.query_db === "mongo") {
+      } else if (query.query_db == "redshift") {
+        const pg = require('pg');
+        const client = new pg.Client(this.db_creds);
+        await client.connect();
+        const res = await client.query(query.query_generated);
+        const colnames = res.fields.map(f => f.name);
+        const data = res.rows;
+        client.end();
+        
+        console.log("Query ran succesfully!");
+        
+        return {
+          columns: colnames,
+          data: data,
+          query_generated: query.query_generated,
+          ran_successfully: true
+        };
+      }
+      else if (query.query_db === "mongo") {
         const MongoClient = require('mongodb').MongoClient;
         const client = new MongoClient(this.db_creds['connection_string'], { useNewUrlParser: true });
         await client.connect();
