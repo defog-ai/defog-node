@@ -13,6 +13,8 @@ You can get your API key by going to [https://defog.ai/account](https://defog.ai
 ## Postgres
 ```
 import Defog from defog
+// depending on your node version, you might have to use the following line instead
+// const Defog = require("defog")
 
 // set up Defog
 const defog = new Defog(
@@ -42,6 +44,8 @@ console.log(answer);
 ## Mongo
 ```
 const Defog = require("defog");
+// depending on your node version, you might have to use the following line instead
+// const Defog = require("defog")
 
 const defog = new Defog(
   api_key = process.env.DEFOG_API_KEY,
@@ -61,6 +65,9 @@ console.log(answer);
 
 ## MySQL
 ```
+// depending on your node version, you might have to use the following line instead
+// const Defog = require("defog")
+
 const defog = new Defog(
   api_key = process.env.DEFOG_API_KEY,
   db_type = "mysql",
