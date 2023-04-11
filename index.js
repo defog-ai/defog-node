@@ -196,7 +196,6 @@ class Defog {
   }
   
   async runQuery(question, hard_filters = null) {
-    const fetch = require('node-fetch');
     console.log("generating the query for your question...");
     const query = await this.getQuery(question, hard_filters);
     
