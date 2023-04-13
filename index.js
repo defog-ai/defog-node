@@ -1,4 +1,4 @@
-export default class Defog {
+class Defog {
   constructor(api_key, db_type = "postgres", db_creds = null) {
     this.api_key = api_key;
     this.db_type = db_type;
@@ -282,3 +282,5 @@ export default class Defog {
     }
   }
 }
+
+module.exports = Defog;
