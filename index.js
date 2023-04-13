@@ -283,4 +283,5 @@ class Defog {
   }
 }
 
-module.exports = Defog;
+// module.exports = Defog;
+export default Defog;
