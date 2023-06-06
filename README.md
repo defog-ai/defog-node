@@ -11,7 +11,7 @@ You can get your API key by going to [https://defog.ai/account](https://defog.ai
 # Usage
 
 ## Postgres
-```
+```javascript
 import Defog from defog
 // depending on your node version, you might have to use the following line instead
 // const Defog = require("defog")
@@ -29,42 +29,13 @@ const defog = new Defog(
   }
 );
 
-// generate your initial table schema in a google sheet
-const tables = ["YOUR_TABLE_NAME_1"];
-const gsheetUrl = await defog.generatePostgresSchema(tables);
-
-// after editing the google sheet, upload it to your account
-await defog.updatePostgresSchema(gsheetUrl);
-
 const question = "which 10 cities had the highest average pollution today?";
 const answer = await defog.runQuery(question);
 console.log(answer);
 ```
 
-## Mongo
-```
-const Defog = require("defog");
-// depending on your node version, you might have to use the following line instead
-// const Defog = require("defog")
-
-const defog = new Defog(
-  api_key = process.env.DEFOG_API_KEY,
-  db_type = "mongo",
-  db_creds = {"connection_string": MONGOCONNECTIONSTRING}
-);
-
-const collections = ['layoffs'];
-sheetUrl = await defog.generateMongoSchema(collections);
-
-await defog.updateMongoSchema(sheetUrl);
-
-const question = "which 10 companies had the most layoffs?";
-const answer = await defog.runQuery(question);
-console.log(answer);
-```
-
 ## MySQL
-```
+```javascript
 // depending on your node version, you might have to use the following line instead
 // const Defog = require("defog")
 
@@ -79,10 +50,23 @@ const defog = new Defog(
   }
 );
 
-const tables = ['YOUR_TABLE_1', 'YOUR_TABLE_2'];
-sheetUrl = await defog.generateMySQLSchema(tables);
+const question = "which 10 companies had the most layoffs?";
+const query = await defog.runQuery(question);
+console.log(query);
+```
 
-await defog.updateMySQLSchema(sheetUrl);
+## BigQuery
+```javascript
+// depending on your node version, you might have to use the following line instead
+// const Defog = require("defog")
+
+const defog = new Defog(
+  api_key = process.env.DEFOG_API_KEY,
+  db_type = "bigquery",
+  db_creds = {
+    json_key_path: "/path/to/service_account.key"
+  }
+);
 
 const question = "which 10 companies had the most layoffs?";
 const query = await defog.runQuery(question);
