@@ -233,8 +233,7 @@ class Defog {
   async getQuery(question, hard_filters = null, previous_context = null) {
     const fetch = require('cross-fetch');
     try {
-      // const res = await fetch("https://api.defog.ai/generate_query_chat", {
-        const res = await fetch("http://localhost:8080/generate_query_chat", {
+      const res = await fetch("https://api.defog.ai/generate_query_chat", {
         method: "POST",
         body: JSON.stringify({
           question: question,
