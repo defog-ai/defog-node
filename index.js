@@ -6,6 +6,7 @@ class Defog {
   }
 
   async retryQuery(client, question, query, err_msg) {
+    const fetch = require('cross-fetch');
     console.log("There was an error when running the previous query. Retrying with adaptive learning...")
     console.log(query);
     console.log(err_msg);
