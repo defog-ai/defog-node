@@ -6,7 +6,7 @@ Defog converts your natural language text queries into SQL and other machine rea
 `npm i defog`
 
 # Getting your API Key
-You can get your API key by going to [https://defog.ai/signup](https://defog.ai/signup) and creating an account.
+You can get your API key by going to [https://defog.ai/signup](https://defog.ai/signup) and creating an account. Additionally, you must set up your database metadata using our CLI interface by following the steps [here](https://docs.defog.ai/getting-started/)
 
 # Usage
 
