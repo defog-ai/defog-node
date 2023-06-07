@@ -7,12 +7,13 @@ class Defog {
 
   async retryQuery(client, question, query, err_msg) {
     console.log("There was an error when running the previous query. Retrying with adaptive learning...")
+    console.log(query);
+    console.log(err_msg);
     const payload = {
       "api_key": this.api_key,
       "previous_query": query,
       "error": err_msg,
       "db_type": this.db_type,
-      "hard_filters": hard_filters,
       "question": question,
     }
     const res = await fetch("https://api.defog.ai/retry_query_after_error", {
@@ -24,17 +25,17 @@ class Defog {
     try {
       if (this.db_type === "postgres" || this.db_type === "redshift") {
         const data = await client.query(new_query);
-        return data;
+        return {data: data, newQuery: new_query};
       } else if (this.db_type === "mysql") {
         const queryAsync = util.promisify(client.query).bind(client);
         const data = await queryAsync(new_query);
-        return data;
+        return {data: data, newQuery: new_query};
       } else if (this.db_type === "bigquery") {
         const [job] = await client.createQueryJob({
           query: new_query,
         });
         const [rows] = await job.getQueryResults();
-        return rows
+        return {data: rows, newQuery: new_query};
       } else {
         throw new Error("This database is not yet supported in our node library. Sorry about that.");
       }
@@ -43,11 +44,12 @@ class Defog {
         client.close()
       } catch (err) {
       }
-      throw new Error("The generated query resulted in an error when run on your database.");
+      console.log("The generated query resulted in an error when run on your database.\n" + err.message);
+      return {data: null, newQuery: null, error: err.message};
     }
   }
 
-  async executeQuery(query) {
+  async executeQuery(query, question) {
     if (query.ran_successfully) {
       console.log("Query generated, now running it on your database...");
       
@@ -67,14 +69,21 @@ class Defog {
         try {
           res = await client.query(query.query_generated);
         } catch (error) {
-          res = await this.retryQuery(client, question, query.query_generated, error.message);
+          const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
+          res = data;
+          query.query_generated = newQuery;
+          if (!query.query_generated) {
+            return {
+              ran_successfully: false,
+              error_message: "The query could not be executed on your server",
+              query_generated: query.query_generated,
+            }
+          }
         }
         
         const colnames = res.fields.map(f => f.name);
         const data = res.rows;
         client.end();
-        
-        console.log("Query ran succesfully!");
         
         return {
           columns: colnames,
@@ -98,7 +107,16 @@ class Defog {
         try {
           res = await client.query(query.query_generated);
         } catch(error) {
-          res = await this.retryQuery(client, question, query.query_generated, error.message);
+          const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
+          res = data;
+          query.query_generated = newQuery;
+          if (!query.query_generated) {
+            return {
+              ran_successfully: false,
+              error_message: "The query could not be executed on your server",
+              query_generated: query.query_generated,
+            }
+          }
         }
         
         const colnames = res.fields.map(f => f.name);
@@ -130,15 +148,30 @@ class Defog {
         try {
           queryAsync = util.promisify(connection.query).bind(connection);
           res = await queryAsync(query.query_generated);
+          connection.end();
         } catch (error) {
-          res = await this.retryQuery(client, question, query.query_generated, error.message);
+          const {data, newQuery} = await this.retryQuery(connection, question, query.query_generated, error.message);
+          res = data;
+          query.query_generated = newQuery;
+          if (!query.query_generated) {
+            return {
+              ran_successfully: false,
+              error_message: "The query could not be executed on your server",
+              query_generated: query.query_generated,
+            }
+          }
         }
         
-        console.log("Query ran succesfully!")
-        const colnames = Object.keys(res[0]);
-        const rows = res;
-        const data = rows.map(row => Object.values(row));
-        connection.end();
+        let colnames;
+        let data;
+
+        if (res && res.length > 0) {
+          colnames = Object.keys(res[0]);
+          data = res.map(row => Object.values(row));
+        } else {
+          colnames = [];
+          data = [];
+        }
         return {
           columns: colnames,
           data: data,
@@ -155,14 +188,30 @@ class Defog {
             query: query.query_generated,
           });
           const [rows] = await job.getQueryResults();
-          res = rows
+          res = rows;
         } catch(error) {
-          res = await this.retryQuery(client, question, query.query_generated, error.message);
+          const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
+          res = data;
+          query.query_generated = newQuery;
+          if (!query.query_generated) {
+            return {
+              ran_successfully: false,
+              error_message: "The query could not be executed on your server",
+              query_generated: query.query_generated,
+            }
+          }
         }
-        const colnames = Object.keys(res[0]);
-        const data = res.map(row => Object.values(row));
+
+        let colnames;
+        let data;
+        if (res && res.length > 0) {
+          colnames = Object.keys(res[0]);
+          data = res.map(row => Object.values(row));
+        } else {
+          colnames = [];
+          data = [];
+        }
         
-        console.log("Query ran succesfully!")
         return {
           columns: colnames,
           data: data,
@@ -184,7 +233,8 @@ class Defog {
   async getQuery(question, hard_filters = null, previous_context = null) {
     const fetch = require('cross-fetch');
     try {
-      const res = await fetch("https://api.defog.ai/generate_query_chat", {
+      // const res = await fetch("https://api.defog.ai/generate_query_chat", {
+        const res = await fetch("http://localhost:8080/generate_query_chat", {
         method: "POST",
         body: JSON.stringify({
           question: question,
@@ -208,7 +258,7 @@ class Defog {
       };
     } catch (err) {
       return {
-        "ran_successfully": False,
+        "ran_successfully": false,
         "error_message": "Sorry :( Our server is at capacity right now and we are unable to process your query. Please try again in a few minutes?",
       };
     }
@@ -217,7 +267,13 @@ class Defog {
   async runQuery(question, hard_filters = null, previous_context = null) {
     console.log("generating the query for your question...");
     const query = await this.getQuery(question, hard_filters, previous_context);
-    const results = await this.executeQuery(query);
+    console.log(query.query_generated);
+    const results = await this.executeQuery(query, question);
+    if (results && results.ran_successfully) {
+      console.log("query ran successfully!");
+    } else {
+      console.log("query failed");
+    }
     return results;
   }
 }
