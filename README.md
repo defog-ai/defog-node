@@ -29,13 +29,14 @@ const defog = new Defog(
   }
 );
 
-const question = "which 10 cities had the highest average pollution today?";
+const question = "how many users do we have?";
 const answer = await defog.runQuery(question);
 console.log(answer);
 ```
 
 ## MySQL
 ```javascript
+import Defog from defog
 // depending on your node version, you might have to use the following line instead
 // const Defog = require("defog")
 
@@ -50,25 +51,27 @@ const defog = new Defog(
   }
 );
 
-const question = "which 10 companies had the most layoffs?";
+const question = "how many users do we have";
 const query = await defog.runQuery(question);
 console.log(query);
 ```
 
 ## BigQuery
 ```javascript
+import Defog from defog
 // depending on your node version, you might have to use the following line instead
 // const Defog = require("defog")
 
+// before initializing Defog, please ensure that the path to your Service Account JSON
+// is in your environment variable
+// process.env.GOOGLE_APPLICATION_CREDENTIALS = '/path/to/json.key';
+
 const defog = new Defog(
   api_key = process.env.DEFOG_API_KEY,
-  db_type = "bigquery",
-  db_creds = {
-    json_key_path: "/path/to/service_account.key"
-  }
+  db_type = "bigquery"
 );
 
-const question = "which 10 companies had the most layoffs?";
+const question = "how many users do we have";
 const query = await defog.runQuery(question);
 console.log(query);
 ```
