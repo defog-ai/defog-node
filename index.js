@@ -5,6 +5,20 @@ class Defog {
     this.db_creds = db_creds;
   }
 
+  async updateGlossary(glossary) {
+    const fetch = require('cross-fetch');
+    const payload = {
+      "api_key": this.api_key,
+      "glossary": glossary,
+    }
+    const res = await fetch("https://api.defog.ai/update_glossary", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const resp = await res.json();
+    return resp;
+  }
+
   async retryQuery(client, question, query, err_msg) {
     const fetch = require('cross-fetch');
     console.log("There was an error when running the previous query. Retrying with adaptive learning...")
