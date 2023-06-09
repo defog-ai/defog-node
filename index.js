@@ -22,8 +22,27 @@ class Defog {
   async retryQuery(client, question, query, err_msg) {
     const fetch = require('cross-fetch');
     console.log("There was an error when running the previous query. Retrying with adaptive learning...")
-    console.log(query);
     console.log(err_msg);
+
+    // log the error to Defog servers for better error tracking
+    try {
+      const loggingPayload = {
+        "api_key": this.api_key,
+        "feedback": "bad",
+        "text": err_msg,
+        "db_type": this.db_type,
+        "question": question,
+        "query": query,
+      };
+      
+      await fetch("https://api.defog.ai/feedback", {
+        method: "POST",
+        body: JSON.stringify(loggingPayload),
+      });
+    } catch (err) {
+      // pass
+    }
+
     const payload = {
       "api_key": this.api_key,
       "previous_query": query,
