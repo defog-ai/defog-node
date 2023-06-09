@@ -1,6 +1,6 @@
 {
   "name": "defog",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "description": "Node package for accessing Defog.ai",
   "main": "index.js",
   "types": "index.d.ts",
