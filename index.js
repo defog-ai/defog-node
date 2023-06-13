@@ -309,6 +309,47 @@ class Defog {
     }
     return results;
   }
+
+  async updatePredefinedQueries(predefinedQueries) {
+    const fetch = require('cross-fetch');
+    try {
+      const res = await fetch("https://api.defog.ai/update_predefined_queries", {
+        method: "POST",
+        body: JSON.stringify({
+          predefined_queries: predefinedQueries,
+          api_key: this.api_key,
+        }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const resp = await res.json();
+      return resp;
+    } catch (err) {
+      return {
+        "ran_successfully": false,
+        "error_message": "Sorry :( There was an error in sending your predefined queries to our server.",
+      };
+    }
+  }
+
+  async getPredefinedQueries() {
+    const fetch = require('cross-fetch');
+    try {
+      const res = await fetch("https://api.defog.ai/get_predefined_queries", {
+        method: "POST",
+        body: JSON.stringify({
+          api_key: this.api_key,
+        }),
+        headers: { "Content-Type": "application/json" }
+      });
+      const resp = await res.json();
+      return resp;
+    } catch (err) {
+      return {
+        "ran_successfully": false,
+        "error_message": "Sorry :( There was an error in getting your predefined queries from our server.",
+      };
+    }
+  }
 }
 
 module.exports = Defog;
