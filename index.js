@@ -153,8 +153,8 @@ class Defog {
           }
         }
         
-        const colnames = res.fields.map(f => f.name);
-        const data = res.rows;
+        const colnames = res?.fields.map(f => f.name);
+        const data = res?.rows.map(row => Object.values(row));
         client.end();
         
         console.log("Query ran succesfully!");
