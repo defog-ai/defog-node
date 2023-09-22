@@ -70,6 +70,23 @@ class Defog {
         });
         const [rows] = await job.getQueryResults();
         return {data: rows, newQuery: new_query};
+      } else if (this.db_type === "snowflake") {
+        const executeSnowflakeQuery = async(client, query) => {
+          return new Promise((resolve, reject) => {
+            client.execute({
+              sqlText: query,
+              complete: function(err, stmt, rows) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(rows);
+                }
+              }
+            });
+          });
+        }
+        const data = await executeSnowflakeQuery(client, new_query);
+        return {data: data, newQuery: new_query};
       } else {
         throw new Error("This database is not yet supported in our node library. Sorry about that.");
       }
@@ -252,6 +269,51 @@ class Defog {
           colnames = [];
           data = [];
         }
+        
+        return {
+          columns: colnames,
+          data: data,
+          ran_successfully: true,
+          ...query
+        };
+      } else if (query.query_db === "snowflake") {
+        const snowflake = require('snowflake-sdk');
+        const client = snowflake.createConnection(this.db_creds);
+        await client.connect();
+        
+        const executeSnowflakeQuery = async(client, query) => {
+          return new Promise((resolve, reject) => {
+            client.execute({
+              sqlText: query,
+              complete: function(err, stmt, rows) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(rows);
+                }
+              }
+            });
+          });
+        }
+
+        let resRows;
+        try {
+          resRows = await executeSnowflakeQuery(client, query.query_generated);
+        } catch(error) {
+          const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
+          resRows = data;
+        }
+        console.log(resRows);
+        let colnames;
+        let data;
+        if (resRows && resRows.length > 0) {
+          colnames = Object.keys(resRows[0]);
+          data = resRows.map(row => Object.values(row));
+        } else {
+          colnames = [];
+          data = [];
+        }
+        await client.destroy();
         
         return {
           columns: colnames,
