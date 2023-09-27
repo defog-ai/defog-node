@@ -75,3 +75,28 @@ const question = "how many users do we have";
 const query = await defog.runQuery(question);
 console.log(query);
 ```
+
+## Snowflake
+```javascript
+import Defog from defog
+// depending on your node version, you might have to use the following line instead
+// const Defog = require("defog")
+
+// before initializing Defog, please ensure that the path to your Service Account JSON
+// is in your environment variable
+// process.env.GOOGLE_APPLICATION_CREDENTIALS = '/path/to/json.key';
+
+const defog = new Defog(
+  api_key = process.env.DEFOG_API_KEY,
+  "snowflake", db_creds={
+    account: 'YOUR_SNOWFLAKE_ACCOUNT',
+    username: 'YOUR_SNOWFLAKE_USERNAME',
+    password: 'YOUR_SNOWFLAKE_PASSWORD',
+    warehouse: 'YOUR_SNOWFLAKE_WAREHOUSE' // By default, this is 'COMPUTE_WH'
+  }
+);
+
+const question = "how many users do we have";
+const query = await defog.runQuery(question);
+console.log(query);
+```
