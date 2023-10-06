@@ -1,8 +1,9 @@
 class Defog {
-  constructor(api_key, db_type = "postgres", db_creds = null) {
+  constructor(api_key, db_type = "postgres", db_creds = null, generateUrl = "https://api.defog.ai/generate_query_chat") {
     this.api_key = api_key;
     this.db_type = db_type;
     this.db_creds = db_creds;
+    this.generateUrl = generateUrl;
   }
 
   async updateGlossary(glossary) {
@@ -336,7 +337,7 @@ class Defog {
   async getQuery(question, hard_filters = null, previous_context = null) {
     const fetch = require('cross-fetch');
     try {
-      const res = await fetch("https://api.defog.ai/generate_query_chat", {
+      const res = await fetch(this.generateUrl, {
         method: "POST",
         body: JSON.stringify({
           question: question,
