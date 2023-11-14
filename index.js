@@ -101,7 +101,7 @@ class Defog {
     }
   }
 
-  async executeQuery(query, question) {
+  async executeQuery(query, question, db_name) {
     if (query.ran_successfully) {
       console.log("Query generated, now running it on your database...");
       
@@ -279,7 +279,13 @@ class Defog {
         };
       } else if (query.query_db === "snowflake") {
         const snowflake = require('snowflake-sdk');
-        const client = snowflake.createConnection(this.db_creds);
+        let creds = null;
+        if (!db_name) {
+          creds = this.db_creds;
+        } else {
+          creds = {...this.db_creds, database: db_name};
+        }
+        const client = snowflake.createConnection(creds);
         await client.connect();
         
         const executeSnowflakeQuery = async(client, query) => {
@@ -298,12 +304,12 @@ class Defog {
         }
 
         let resRows;
-        try {
-          resRows = await executeSnowflakeQuery(client, query.query_generated);
-        } catch(error) {
-          const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
-          resRows = data;
-        }
+        // try {
+        resRows = await executeSnowflakeQuery(client, query.query_generated);
+        // } catch(error) {
+        //   const {data, newQuery} = await this.retryQuery(client, question, query.query_generated, error.message);
+        //   resRows = data;
+        // }
         console.log(resRows);
         let colnames;
         let data;
@@ -367,11 +373,11 @@ class Defog {
     }
   }
   
-  async runQuery(question, hard_filters = null, previous_context = null) {
+  async runQuery(question, hard_filters = null, previous_context = null, db_name = null) {
     console.log("generating the query for your question...");
     const query = await this.getQuery(question, hard_filters, previous_context);
     console.log(query.query_generated);
-    const results = await this.executeQuery(query, question);
+    const results = await this.executeQuery(query, question, db_name);
     if (results && results.ran_successfully) {
       console.log("query ran successfully!");
     } else {
